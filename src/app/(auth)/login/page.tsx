@@ -1,36 +1,42 @@
 "use client"
 
-import { useState } from "react"
-import { BookOpen, Eye, EyeOff, Loader2 } from "lucide-react"
+import { useState, useTransition } from "react"
+import { BookOpen, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { login } from "@/lib/supabase/actions"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
-    // Auth con Supabase — se implementa en siguiente iteración
-    await new Promise((r) => setTimeout(r, 1200))
-    setLoading(false)
+    setError(null)
+    const formData = new FormData(e.currentTarget)
+    startTransition(async () => {
+      const result = await login(formData)
+      if (result?.error) {
+        setError(
+          result.error.includes("Invalid login")
+            ? "Correo o contraseña incorrectos"
+            : "Ocurrió un error. Intenta de nuevo."
+        )
+      }
+    })
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      {/* Fondo decorativo */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
         <div className="absolute -bottom-40 -left-40 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-sm animate-in">
-        {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
             <BookOpen className="h-6 w-6" />
@@ -48,17 +54,24 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  {error}
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">Correo electrónico</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="guia@escuela.edu.mx"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
                   className="h-10"
+                  disabled={isPending}
                 />
               </div>
 
@@ -75,13 +88,13 @@ export default function LoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
                     className="h-10 pr-10"
+                    disabled={isPending}
                   />
                   <button
                     type="button"
@@ -94,19 +107,10 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full cursor-pointer"
-                disabled={loading || !email || !password}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Ingresando…
-                  </>
-                ) : (
-                  "Ingresar"
-                )}
+              <Button type="submit" className="w-full cursor-pointer" disabled={isPending}>
+                {isPending ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Ingresando…</>
+                ) : "Ingresar"}
               </Button>
             </form>
           </CardContent>

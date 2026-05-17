@@ -3,58 +3,44 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  BookOpen,
-  LayoutDashboard,
-  Users,
-  GraduationCap,
-  ClipboardList,
-  BarChart3,
-  Settings,
-  LogOut,
-  ChevronDown,
-  Mic,
+  BookOpen, LayoutDashboard, Users, GraduationCap,
+  ClipboardList, BarChart3, Settings, Mic,
 } from "lucide-react"
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarSeparator,
+  Sidebar, SidebarContent, SidebarFooter, SidebarGroup,
+  SidebarGroupLabel, SidebarHeader, SidebarMenu,
+  SidebarMenuButton, SidebarMenuItem, SidebarSeparator,
 } from "@/components/ui/sidebar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { UserMenu } from "@/components/nav/user-menu"
 
 const navMain = [
-  { title: "Dashboard",            href: "/dashboard",                icon: LayoutDashboard },
-  { title: "Alumnos",              href: "/dashboard/alumnos",        icon: Users },
-  { title: "Presentaciones",       href: "/dashboard/presentaciones", icon: ClipboardList },
-  { title: "Asistente de voz",     href: "/dashboard/voz",            icon: Mic, badge: "Beta" },
+  { title: "Dashboard",        href: "/dashboard",                icon: LayoutDashboard },
+  { title: "Alumnos",          href: "/dashboard/alumnos",        icon: Users },
+  { title: "Presentaciones",   href: "/dashboard/presentaciones", icon: ClipboardList },
+  { title: "Asistente de voz", href: "/dashboard/voz",            icon: Mic, badge: "Beta" },
 ]
 
 const navGestion = [
-  { title: "Guías y profesores",   href: "/dashboard/guias",          icon: GraduationCap },
-  { title: "Currículo",            href: "/dashboard/curriculum",     icon: BookOpen },
-  { title: "Reportes",             href: "/dashboard/reportes",       icon: BarChart3 },
+  { title: "Guías y profesores", href: "/dashboard/guias",       icon: GraduationCap },
+  { title: "Currículo",          href: "/dashboard/curriculum",  icon: BookOpen },
+  { title: "Reportes",           href: "/dashboard/reportes",    icon: BarChart3 },
 ]
 
 const navConfig = [
-  { title: "Configuración",        href: "/dashboard/configuracion",  icon: Settings },
+  { title: "Configuración", href: "/dashboard/configuracion", icon: Settings },
 ]
 
-const mockUser = { name: "Ana García", role: "Guía", school: "Colegio Montessori", initials: "AG" }
+interface AppSidebarProps {
+  user: { name: string; role: string; initials: string; school: string }
+}
 
-function NavItem({ item, pathname }: { item: typeof navMain[0] & { badge?: string }, pathname: string }) {
+function NavItem({
+  item,
+  pathname,
+}: {
+  item: { title: string; href: string; icon: React.ElementType; badge?: string }
+  pathname: string
+}) {
   const active = pathname === item.href || pathname.startsWith(item.href + "/")
   return (
     <SidebarMenuItem>
@@ -73,12 +59,11 @@ function NavItem({ item, pathname }: { item: typeof navMain[0] & { badge?: strin
   )
 }
 
-export function AppSidebar() {
+export function AppSidebar({ user }: AppSidebarProps) {
   const pathname = usePathname()
 
   return (
     <Sidebar collapsible="icon" variant="sidebar">
-      {/* Header */}
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -89,7 +74,7 @@ export function AppSidebar() {
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold text-sm tracking-tight">Montessori Records</span>
-                  <span className="text-xs text-muted-foreground truncate">{mockUser.school}</span>
+                  <span className="text-xs text-muted-foreground truncate">{user.school}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -100,7 +85,6 @@ export function AppSidebar() {
       <SidebarSeparator />
 
       <SidebarContent>
-        {/* Navegación principal */}
         <SidebarGroup>
           <SidebarMenu>
             {navMain.map((item) => <NavItem key={item.href} item={item} pathname={pathname} />)}
@@ -109,7 +93,6 @@ export function AppSidebar() {
 
         <SidebarSeparator />
 
-        {/* Gestión */}
         <SidebarGroup>
           <SidebarGroupLabel>Gestión</SidebarGroupLabel>
           <SidebarMenu>
@@ -119,7 +102,6 @@ export function AppSidebar() {
 
         <SidebarSeparator />
 
-        {/* Config */}
         <SidebarGroup>
           <SidebarMenu>
             {navConfig.map((item) => <NavItem key={item.href} item={item} pathname={pathname} />)}
@@ -127,38 +109,10 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      {/* Footer — Usuario */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="w-full">
-                <SidebarMenuButton size="lg" tooltip={mockUser.name}>
-                  <div className="flex w-full items-center gap-2">
-                    <Avatar className="h-8 w-8 rounded-lg shrink-0">
-                      <AvatarFallback className="rounded-lg bg-primary/10 text-primary text-xs font-semibold">
-                        {mockUser.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col gap-0.5 leading-none text-left flex-1 min-w-0">
-                      <span className="font-medium text-sm truncate">{mockUser.name}</span>
-                      <span className="text-xs text-muted-foreground">{mockUser.role}</span>
-                    </div>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  </div>
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuItem className="cursor-pointer" onClick={() => {}}>
-                  <Link href="/dashboard/configuracion" className="w-full">Mi perfil</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Cerrar sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserMenu name={user.name} role={user.role} initials={user.initials} />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
